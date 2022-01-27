@@ -11,14 +11,14 @@ namespace PaymentContext.Domain.Entities
         public Document Document { get; private set; }
         public Email Email { get; private set; }
         public Address Address { get; private set; }
-        public IReadOnlyCollection<Subscription> Subscriptions { get; set; }
+        public IReadOnlyCollection<Subscription> Subscriptions { get{return _subscriptions.ToArray();}}
 
         public Student(Name name, Document document, Email email)
         {
             Name = name;
             Document = document;
             Email = email;
-            _subscriptions = new List<Subscription>().ToArray();
+            _subscriptions = new List<Subscription>();
 
             AddNotifications(name, email, document);
         }
@@ -35,7 +35,10 @@ namespace PaymentContext.Domain.Entities
             AddNotifications(new Contract<Student>()
                 .Requires()
                 .IsFalse(hasSubscriptionActive, "Student.Subscriptions", "You already have an active subscription")
+                .AreNotEquals(0, subscription.Payments.Count, "Student.Subscriptions.Payments", "This subscription has no payments")
             );
+
+            if(IsValid) _subscriptions.Add(subscription);
         }
     }
 }
